@@ -124,14 +124,14 @@ let force_line_number ?filename n =
   | Some filename ->
     Printf.sprintf "\n# %d \"%s\"\n" n filename
 
-let foreign_blocks = [
-  { name = "ocaml";
+let ocaml name f =
+  { name;
     command = "ocaml";
     suffix = ".ml";
     print =
       (fun s ->
        if s <> "" then
-         Printf.sprintf " let _ = print_string \"%s\"\n" s
+         " " ^ f s
        else "");
     string_escape = String.escaped;
     char_escape = Char.escaped;
@@ -140,9 +140,13 @@ let foreign_blocks = [
       force_line_number ?filename n ^
         (match !target_language_location_handler ?filename n with
          | "" -> ""
-         | l -> Printf.sprintf "let _ = print_string %S" l)
+         | l -> f (String.escaped l))
     );
-  };
+  }
+
+let foreign_blocks = [
+  ocaml "ocaml" (Printf.sprintf "let _ = print_string \"%s\"\n");
+  ocaml "ocaml-expr" (Printf.sprintf "print_string \"%s\";\n");
   { name = "bash";
     command = "bash";
     suffix = ".bash";

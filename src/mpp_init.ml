@@ -118,6 +118,12 @@ let perl_string_escape s =
   done;
   Buffer.contents b
 
+let force_line_number ?filename n =
+  match filename with
+  | None -> Printf.sprintf "\n# %d\n" n
+  | Some filename ->
+    Printf.sprintf "\n# %d \"%s\"\n" n filename
+
 let foreign_blocks = [
   { name = "ocaml";
     command = "ocaml";
@@ -131,11 +137,7 @@ let foreign_blocks = [
     char_escape = Char.escaped;
     force_line_number = (
       fun ?filename n ->
-      (match filename with
-       | None -> Printf.sprintf "\n# %d\n" n
-       | Some filename ->
-          Printf.sprintf "\n# %d \"%s\"\n" n filename)
-      ^
+      force_line_number ?filename n ^
         (match !target_language_location_handler ?filename n with
          | "" -> ""
          | l -> Printf.sprintf "let _ = print_string %S" l)
@@ -147,13 +149,7 @@ let foreign_blocks = [
     print = (fun s -> if s <> "" then Printf.sprintf "echo -n %s" s else "");
     string_escape = bash_string_escape;
     char_escape = (fun c -> bash_string_escape (String.make 1 c));
-    force_line_number = (
-      fun ?filename n ->
-        match filename with
-        | None -> Printf.sprintf "\n# %d\n" n
-        | Some filename ->
-          Printf.sprintf "\n# %d \"%s\"\n" n filename
-    );
+    force_line_number;
   };
   { name = "php";
     command = "php";
@@ -163,13 +159,7 @@ let foreign_blocks = [
        if s <> "" then Printf.sprintf "echo \"%s\n\";" s else "");
     string_escape = php_string_escape;
     char_escape = (fun c -> php_string_escape (String.make 1 c));
-    force_line_number = (
-      fun ?filename n ->
-        match filename with
-        | None -> Printf.sprintf "\n# %d\n" n
-        | Some filename ->
-          Printf.sprintf "\n# %d \"%s\"\n" n filename
-    );
+    force_line_number;
   };
   { name = "perl";
     command = "perl";
@@ -179,13 +169,7 @@ let foreign_blocks = [
        if s <> "" then Printf.sprintf "echo \"%s\n\";" s else "");
     string_escape = perl_string_escape;
     char_escape = (fun c -> perl_string_escape (String.make 1 c));
-    force_line_number = (
-      fun ?filename n ->
-        match filename with
-        | None -> Printf.sprintf "\n# %d\n" n
-        | Some filename ->
-          Printf.sprintf "\n# %d \"%s\"\n" n filename
-    );
+    force_line_number;
   };
 ]
 
